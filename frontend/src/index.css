@@ -194,6 +194,18 @@ textarea:focus {
   gap: 0.5rem;
 }
 
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
 .history-item.clickable {
   cursor: pointer;
   transition: all 0.2s ease;
@@ -203,6 +215,37 @@ textarea:focus {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.15);
   transform: translateX(4px);
+}
+
+.history-left {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-grow: 1;
+  margin-right: 0.5rem;
+}
+
+.delete-history-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.history-item:hover .delete-history-btn {
+  opacity: 0.6;
+}
+
+.delete-history-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444 !important;
+  opacity: 1 !important;
 }
 
 .history-text {
@@ -382,6 +425,27 @@ textarea::-webkit-scrollbar-thumb:hover {
   display: flex;
   justify-content: center;
   margin-bottom: 1rem;
+  position: relative;
+}
+
+.status-dot {
+  position: absolute;
+  top: 0;
+  right: 42%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-dark);
+}
+
+.status-dot.online {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.status-dot.offline {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
 }
 
 .logo-icon {
@@ -415,6 +479,17 @@ textarea::-webkit-scrollbar-thumb:hover {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+}
+
+.result-main {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.emotion-icon {
+  opacity: 0.9;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
 }
 
 .result-label {

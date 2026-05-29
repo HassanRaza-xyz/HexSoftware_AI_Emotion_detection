@@ -1,12 +1,14 @@
-import { useState } from 'react'
-import { Sparkles, Loader2, BrainCircuit, Trash2, Copy, Check, Quote, RefreshCw, Share2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Sparkles, Loader2, BrainCircuit, Trash2, Copy, Check, Quote, RefreshCw, Share2, Smile, Frown, Angry, AlertCircle, Zap, Ghost, HelpCircle, X } from 'lucide-react'
 import './index.css'
 
 const SAMPLES = [
-  { text: "I am absolutely thrilled about this new project! It's going to be amazing.", label: "Joyful" },
-  { text: "I'm so frustrated with the constant delays. It's getting really annoying.", label: "Angry" },
-  { text: "The movie was so heartbreaking. I couldn't stop thinking about it for days.", label: "Sad" },
-  { text: "I'm a bit nervous about the upcoming presentation, but I'll do my best.", label: "Nervous" }
+  { text: "I am absolutely thrilled about this new project! It's going to be amazing.", label: "Joy 🌟" },
+  { text: "I'm so frustrated with the constant delays. It's getting really annoying.", label: "Anger 💢" },
+  { text: "The movie was so heartbreaking. I couldn't stop thinking about it for days.", label: "Sadness 💧" },
+  { text: "I'm a bit nervous about the upcoming presentation, but I'll do my best.", label: "Fear 😨" },
+  { text: "What? I never expected to see you here today! This is incredible.", label: "Surprise ✨" },
+  { text: "That smell is absolutely revolting. I can't stand being in this room.", label: "Disgust 🤢" }
 ]
 
 function App() {
@@ -15,10 +17,24 @@ function App() {
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
+  const [serverOnline, setServerOnline] = useState(null)
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('analysis_history')
     return saved ? JSON.parse(saved) : []
   })
+
+  useEffect(() => {
+    checkServer()
+  }, [])
+
+  const checkServer = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/')
+      setServerOnline(res.ok)
+    } catch {
+      setServerOnline(false)
+    }
+  }
 
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
   const charCount = text.length
@@ -74,6 +90,13 @@ function App() {
     localStorage.removeItem('analysis_history')
   }
 
+  const handleDeleteHistoryItem = (e, id) => {
+    e.stopPropagation()
+    const updatedHistory = history.filter(item => item.id !== id)
+    setHistory(updatedHistory)
+    localStorage.setItem('analysis_history', JSON.stringify(updatedHistory))
+  }
+
   const handleCopy = async () => {
     if (!result) return
     const content = `Emotion: ${result.top_emotion}\nSentiment: ${result.sentiment}\nText: ${text}`
@@ -104,11 +127,26 @@ function App() {
     return validEmotions.includes(emotion?.toLowerCase()) ? emotion.toLowerCase() : 'neutral'
   }
 
+  const getEmotionIcon = (emotion, size = 24) => {
+    switch (emotion?.toLowerCase()) {
+      case 'joy': return <Smile size={size} className="emotion-icon" />
+      case 'sadness': return <Frown size={size} className="emotion-icon" />
+      case 'anger': return <Angry size={size} className="emotion-icon" />
+      case 'fear': return <Ghost size={size} className="emotion-icon" />
+      case 'surprise': return <Zap size={size} className="emotion-icon" />
+      case 'disgust': return <AlertCircle size={size} className="emotion-icon" />
+      default: return <HelpCircle size={size} className="emotion-icon" />
+    }
+  }
+
   return (
     <div className="app-container">
       <header className="header">
         <div className="logo-container">
           <BrainCircuit size={48} color="var(--accent)" className="logo-icon" />
+          {serverOnline !== null && (
+            <div className={`status-dot ${serverOnline ? 'online' : 'offline'}`} title={serverOnline ? 'Server Online' : 'Server Offline'}></div>
+          )}
         </div>
         <h1>Emotion Analyzer</h1>
         <p>Uncover the hidden feelings in your text using AI</p>
@@ -183,10 +221,19 @@ function App() {
                   onClick={() => setText(item.text)}
                   title="Reload this text"
                 >
-                  <span className="history-text">{item.preview}</span>
-                  <span className={`history-tag bg-${getEmotionColor(item.top_emotion)}`}>
-                    {item.top_emotion}
-                  </span>
+                  <div className="history-left">
+                    <span className="history-text">{item.preview}</span>
+                    <span className={`history-tag bg-${getEmotionColor(item.top_emotion)}`}>
+                      {item.top_emotion}
+                    </span>
+                  </div>
+                  <button 
+                    className="delete-history-btn" 
+                    onClick={(e) => handleDeleteHistoryItem(e, item.id)}
+                    title="Remove from history"
+                  >
+                    <X size={14} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -213,9 +260,12 @@ function App() {
           <div className="primary-result">
             <div className="result-card">
               <span className="result-label">Primary Emotion</span>
-              <span className={`result-value color-${getEmotionColor(result.top_emotion)}`}>
-                {result.top_emotion}
-              </span>
+              <div className="result-main">
+                {getEmotionIcon(result.top_emotion, 32)}
+                <span className={`result-value color-${getEmotionColor(result.top_emotion)}`}>
+                  {result.top_emotion}
+                </span>
+              </div>
             </div>
             
             <div className="result-card">
