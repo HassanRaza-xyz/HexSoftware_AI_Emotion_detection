@@ -141,12 +141,86 @@ textarea:focus {
 .clear-btn {
   position: absolute;
   right: 1rem;
-  bottom: 1rem;
+  bottom: 3.5rem; /* Moved up to make room for footer */
 }
 
-.clear-btn:hover {
+.clear-btn-inline {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.textarea-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: none;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.stats {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clear-history-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+  opacity: 0.7;
+}
+
+.clear-history-btn:hover {
+  opacity: 1;
   color: var(--emotion-anger);
-  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-item.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.history-item.clickable:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateX(4px);
+}
+
+.history-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;
+}
+
+.history-tag {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  text-transform: capitalize;
+  font-weight: 600;
+  color: white;
 }
 
 .samples-container {
@@ -231,20 +305,46 @@ textarea:focus {
   cursor: not-allowed;
 }
 
-/* Results Area */
+textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .results-container {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   padding-top: 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  animation: fadeIn 0.6s ease-out forwards;
+  animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.results-header {
+@keyframes slideDown {
+  from { 
+    opacity: 0; 
+    transform: translateY(-20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.result-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 0.5rem;
 }
 
 .results-header h3 {

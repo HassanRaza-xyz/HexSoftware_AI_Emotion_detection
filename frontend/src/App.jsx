@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sparkles, Loader2, BrainCircuit, Trash2, Copy, Check, Quote, RefreshCw } from 'lucide-react'
+import { Sparkles, Loader2, BrainCircuit, Trash2, Copy, Check, Quote, RefreshCw, Share2 } from 'lucide-react'
 import './index.css'
 
 const SAMPLES = [
@@ -15,6 +15,13 @@ function App() {
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
+  const [history, setHistory] = useState(() => {
+    const saved = localStorage.getItem('analysis_history')
+    return saved ? JSON.parse(saved) : []
+  })
+
+  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+  const charCount = text.length
 
   const handleAnalyze = async () => {
     if (!text.trim()) return
@@ -37,6 +44,18 @@ function App() {
       
       const data = await response.json()
       setResult(data)
+      
+      // Save to history
+      const newEntry = {
+        id: Date.now(),
+        text: text,
+        preview: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+        top_emotion: data.top_emotion,
+        timestamp: new Date().toLocaleTimeString()
+      }
+      const updatedHistory = [newEntry, ...history].slice(0, 5)
+      setHistory(updatedHistory)
+      localStorage.setItem('analysis_history', JSON.stringify(updatedHistory))
     } catch (err) {
       setError('Could not connect to the backend. Is it running?')
     } finally {
@@ -50,12 +69,34 @@ function App() {
     setError('')
   }
 
+  const handleClearHistory = () => {
+    setHistory([])
+    localStorage.removeItem('analysis_history')
+  }
+
   const handleCopy = async () => {
     if (!result) return
     const content = `Emotion: ${result.top_emotion}\nSentiment: ${result.sentiment}\nText: ${text}`
     await navigator.clipboard.writeText(content)
     setCopySuccess(true)
     setTimeout(() => setCopySuccess(false), 2000)
+  }
+
+  const handleShare = async () => {
+    if (!result) return
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Emotion Analysis Results',
+          text: `My text top emotion is ${result.top_emotion} (${result.sentiment} sentiment). Analyze yours at Emotion Analyzer!`,
+          url: window.location.href,
+        })
+      } catch (err) {
+        console.error('Error sharing:', err)
+      }
+    } else {
+      handleCopy()
+    }
   }
 
   const getEmotionColor = (emotion) => {
@@ -80,11 +121,14 @@ function App() {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
-          {text && (
-            <button className="icon-btn clear-btn" onClick={handleClear} title="Clear text">
-              <Trash2 size={18} />
-            </button>
-          )}
+          <div className="textarea-footer">
+            <span className="stats">{wordCount} words | {charCount} chars</span>
+            {text && (
+              <button className="icon-btn clear-btn-inline" onClick={handleClear} title="Clear text">
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="samples-container">
@@ -124,16 +168,46 @@ function App() {
             </button>
           )}
         </div>
+
+        {history.length > 0 && !result && (
+          <div className="history-section">
+            <div className="history-header">
+              <span className="sample-label">Recent Analyses:</span>
+              <button className="clear-history-btn" onClick={handleClearHistory}>Clear All</button>
+            </div>
+            <div className="history-list">
+              {history.map((item) => (
+                <div 
+                  key={item.id} 
+                  className="history-item clickable"
+                  onClick={() => setText(item.text)}
+                  title="Reload this text"
+                >
+                  <span className="history-text">{item.preview}</span>
+                  <span className={`history-tag bg-${getEmotionColor(item.top_emotion)}`}>
+                    {item.top_emotion}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
 
       {result && (
         <section className="results-container">
           <div className="results-header">
             <h3>Analysis Results</h3>
-            <button className={`copy-btn ${copySuccess ? 'success' : ''}`} onClick={handleCopy}>
-              {copySuccess ? <Check size={16} /> : <Copy size={16} />}
-              {copySuccess ? 'Copied' : 'Copy'}
-            </button>
+            <div className="result-actions">
+              <button className="copy-btn" onClick={handleShare}>
+                <Share2 size={16} />
+                Share
+              </button>
+              <button className={`copy-btn ${copySuccess ? 'success' : ''}`} onClick={handleCopy}>
+                {copySuccess ? <Check size={16} /> : <Copy size={16} />}
+                {copySuccess ? 'Copied' : 'Copy'}
+              </button>
+            </div>
           </div>
 
           <div className="primary-result">
@@ -173,6 +247,7 @@ function App() {
                         />
                       </div>
                       <span className="bar-value">{(value * 100).toFixed(1)}%</span>
+                    </div>
                   )
               })}
             </div>
